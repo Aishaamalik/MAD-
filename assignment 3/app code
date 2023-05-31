@@ -1,0 +1,130 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+const Stack = createStackNavigator();
+
+const HomeScreen = ({ navigation }) => {
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [discountPercent, setDiscountPercent] = useState('');
+
+  const calculateDiscount = () => {
+    // Calculation logic here
+    
+    const discount = (originalPrice * discountPercent) / 100;
+
+    const discountedPrice = originalPrice - discount;
+    navigation.navigate('Result', {
+      originalPrice,
+      discountPercent,
+      discountedPrice: discountedPrice.toFixed(2),
+    });
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Discount Calculator</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter original price"
+        keyboardType="numeric"
+        value={originalPrice}
+        onChangeText={setOriginalPrice}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Enter discount percentage"
+        keyboardType="numeric"
+        value={discountPercent}
+        onChangeText={setDiscountPercent}
+      />
+      <TouchableOpacity style={styles.button} onPress={calculateDiscount}>
+        <Text style={styles.buttonText}>Calculate Discount</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const ResultScreen = ({ route, navigation }) => {
+  const { originalPrice, discountPercent, discountedPrice } = route.params;
+  
+
+  // Calculation and result display logic here
+
+  return (
+    
+    <View style={styles.container}>
+    
+      <Text>Original Price: {originalPrice}</Text>
+      <Text>Discount Percentage: {discountPercent}</Text>
+      <Text>Discounted Price: {discountedPrice}</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('History', { discountedPrice })}>
+        <Text style={styles.buttonText}>View History</Text>
+      </TouchableOpacity>
+    
+    </View>
+  );
+};
+
+const HistoryScreen = ({ navigation }) => {
+  const [history, setHistory] = useState([]);
+
+  const deleteHistoryItem = (index) => {
+    const newHistory = [...history];
+    newHistory.splice(index, 1);
+    setHistory(newHistory);
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+  };
+
+  const renderHistoryItem = ({ item, index }) => (
+    <View style={styles.historyItem}>
+      <Text>Original Price: {item.originalPrice}</Text>
+      <Text>Discount Percentage: {item.discountPercent}</Text>
+      <Text>Discounted Price: {item.discountedPrice}</Text>
+      <TouchableOpacity style={styles.deleteButton} onPress={() => deleteHistoryItem(index)}>
+        <Text style={styles.deleteButtonText}>Delete</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        style={styles.historyList}
+        data={history}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderHistoryItem}
+      />
+      <TouchableOpacity style={styles.button} onPress={clearHistory}>
+        <Text style={styles.buttonText}>Clear History</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+
+const DiscountCalculator = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Result" component={ResultScreen} />
+        <Stack.Screen name="History" component={HistoryScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+const styles = StyleSheet.create({
+  // Your styles here
+  
+});
+
+export default DiscountCalculator;
